@@ -1,0 +1,95 @@
+from microbit import *
+
+# assign morse code table into a dict
+MORSE = {
+    ".-": "A",
+    "-...": "B",
+    "-.-.": "C",
+    "-..": "D",
+    ".": "E",
+    "..-.": "F",
+    "--.": "G",
+    "....": "H",
+    "..": "I",
+    ".---": "J",
+    "-.-": "K",
+    ".-..": "L",
+    "--": "M",
+    "-.": "N",
+    "---": "O",
+    ".--.": "P",
+    "--.-": "Q",
+    ".-.": "R",
+    "...": "S",
+    "-": "T",
+    "..-": "U",
+    "...-": "V",
+    ".--": "W",
+    "-..-": "X",
+    "-.--": "Y",
+    "--..": "Z",
+    ".----": "1",
+    "..---": "2",
+    "...--": "3",
+    "....-": "4",
+    ".....": "5",
+    "-....": "6",
+    "--...": "7",
+    "---..": "8",
+    "----.": "9",
+    "-----": "0"
+}
+# generate a reverse mapping of morse code dict
+morse_inverse = dict((v, k) for k, v in MORSE.items())
+
+# define configurable constants 
+DOT_ACTIVATION = 210
+DASH_ACTIVATION = 450
+SHIFT = 3
+
+def encrypt_message(message):
+    # using atbash cipher to encrypt messages
+    encrypted_message = ""
+    for char in message:
+        if char.isalpha():
+            if char.islower():
+                encrypted_message += chr(219 - ord(char))
+            elif char.isupper():
+                encrypted_message += chr(155 - ord(char))
+        else:
+            encrypted_message += char
+    return encrypted_message
+
+while True:
+    # when button A is pressed, encrypt the defined messsage
+    # and transmit the derived sequence character by character
+    # as morse code signals
+    if button_a.is_pressed():
+        message_original = "HELLO"
+        message_encrypted = encrypt_message(message_original)
+        display.scroll(message_original)
+        for char in message_encrypted:
+            for code in morse_inverse[char]:
+                if code == '.':
+                    display.show(Image('00000:'
+                                       '09990:'
+                                       '09990:'
+                                       '09990:'
+                                       '00000'))
+                    pin0.write_digital(1)
+                    sleep(DOT_ACTIVATION)
+                    pin0.write_digital(0)
+                    sleep(50) 
+                    display.clear()
+                elif code == '-':                    
+                    display.show(Image('00000:'
+                                       '99999:'
+                                       '99999:'
+                                       '00000:'
+                                       '00000'))
+                    pin0.write_digital(1)
+                    sleep(DASH_ACTIVATION)
+                    pin0.write_digital(0)
+                    sleep(50)
+                    display.clear()
+            sleep(2000)
