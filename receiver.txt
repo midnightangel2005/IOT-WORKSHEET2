@@ -1,0 +1,91 @@
+from microbit import *
+
+# assign morse code table into a dict
+MORSE = {
+    ".-": "A",
+    "-...": "B",
+    "-.-.": "C",
+    "-..": "D",
+    ".": "E",
+    "..-.": "F",
+    "--.": "G",
+    "....": "H",
+    "..": "I",
+    ".---": "J",
+    "-.-": "K",
+    ".-..": "L",
+    "--": "M",
+    "-.": "N",
+    "---": "O",
+    ".--.": "P",
+    "--.-": "Q",
+    ".-.": "R",
+    "...": "S",
+    "-": "T",
+    "..-": "U",
+    "...-": "V",
+    ".--": "W",
+    "-..-": "X",
+    "-.--": "Y",
+    "--..": "Z",
+    ".----": "1",
+    "..---": "2",
+    "...--": "3",
+    "....-": "4",
+    ".....": "5",
+    "-....": "6",
+    "--...": "7",
+    "---..": "8",
+    "----.": "9",
+    "-----": "0"
+}
+
+# define configurable constants 
+DOT_TIME = 250
+DASH_TIME = 500
+SHIFT = 3
+
+# initialize buffer
+buffer = ''
+wait_started = running_time()
+
+def decrypt_message(encrypted_message):
+    # user atbash cipher to decrypt messages
+    decrypted_message = ""
+    for char in encrypted_message:
+        if char.isalpha():
+            if char.islower():
+                decrypted_message += chr(219 - ord(char))
+            elif char.isupper():
+                decrypted_message += chr(155 - ord(char))
+        else:
+            decrypted_message += char
+    return decrypted_message
+
+while True:
+    # measure activation duration
+    waiting_time = running_time() - wait_started
+    activated_time = None
+    while pin0.read_digital():
+        if not activated_time:
+            activated_time = running_time()
+    released_time = running_time()
+    # test activation duration for signal thresholds
+    if activated_time:
+        duration = released_time - activated_time
+        if duration < DOT_TIME:
+            buffer += '.'
+            display.show('.')
+        elif duration < DASH_TIME:
+            buffer += '-'
+            display.show('-')
+        wait_started = running_time()
+        
+    elif len(buffer) > 0 and waiting_time > DASH_TIME or len(buffer) == 5:
+        # when signal thresholds are exceeded, infer character from table,
+        # decrypt and show on LED
+        character = MORSE.get(buffer, '?')
+        decrypted_character = decrypt_message(character)
+        buffer = ''
+        display.show(decrypted_character)
+        
